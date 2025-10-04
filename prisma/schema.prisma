@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
+  cart         Cart?
+}
+
+// v01.02.04 2025-09-23
+// 03/10/2025
+model Product {
+  id             Int     @id @default(autoincrement())
+  sku            String? @unique
+  productCode    String?
+  name           String
+  slug           String  @unique
+  priceCents     Int
+  imageUrl       String?
+  description    String?
+  category       String?
+  categories     String?
+  categoriesNorm String?
+  sizes          String?
+  sizesNorm      String?
+  isNew          Boolean @default(false)
+  isBestSeller   Boolean @default(false)
+
+  // Relations
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Keep your existing indexes (copied from your old schema)
+  @@index([createdAt])
+  @@index([priceCents])
+  @@index([isNew])
+  @@index([isBestSeller])
+}
+
+model Order {
+  id         Int           @id @default(autoincrement())
+  userId     Int?
+  user       User?         @relation(fields: [userId], references: [id])
+  totalCents Int
+  status     String        @default("created")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  items      OrderItem[]
+  shipping   ShippingInfo?
+
+  // 👇 missing relation added here
+  tracking OrderTracking?
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int
+  order      Order   @relation(fields: [orderId], references: [id])
+  productId  Int
+  product    Product @relation(fields: [productId], references: [id])
+  qty        Int
+  priceCents Int
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int?       @unique
+  user      User?      @relation(fields: [userId], references: [id])
+  sessionId String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cartId    Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int     @default(1)
+  size      String? // the chosen size for this cart row
+
+  @@unique([cartId, productId])
+}
+
+model ShippingInfo {
+  id       Int    @id @default(autoincrement())
+  orderId  Int    @unique
+  order    Order  @relation(fields: [orderId], references: [id])
+  fullName String
+  address  String
+  city     String
+  postal   String
+  phone    String
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+// lightweight tracking (optional, augment Order)
+model OrderTracking {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique
+  order       Order    @relation(fields: [orderId], references: [id])
+  statusOrder Int      @default(1) // 0..3
+  tracking    String?
+  eta         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // timestamps snapshot
+  created    String? // "Tue, 14 May 2024, 10:00 AM"
+  processing String?
+  shipped    String?
+  delivered  String?
+}
+
+model MenuItem {
+  id        String     @id @default(cuid())
+  label     String
+  slug      String?    @unique // e.g., "women", "women-batik-silk"; optional for non-category links
+  path      String? // override URL (e.g., "/about" or "/contact")
+  parentId  String?
+  parent    MenuItem?  @relation("MenuItemToSelf", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuItemToSelf")
+  sortOrder Int? // lower first; use 1,2,3...; nulls go to bottom
+  isActive  Boolean    @default(true)
+
+  @@index([parentId])
+  @@index([sortOrder])
+}
