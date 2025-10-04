@@ -1,0 +1,457 @@
+<!-- Vinzi Clothing — Shop
+     Version: v01.03.04
+     Date: 2025-09-26 22:15 (Asia/Colombo)
+
+     Changes:
+     [v01.03.04] Top nav: highlight "Shop".
+                 Functional menu: parents with children do NOT navigate; only leaf items navigate.
+                 Added event delegation for functional menu clicks.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop | Vinzi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fonts & Icons (same as Home) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin/>
+  <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Spline+Sans:wght@400;500;700&family=Playfair+Display:wght@400;500;700;900"
+        onload="this.rel='stylesheet'">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <style type="text/tailwindcss">
+    :root {
+      --neutral-900: #1c1c0d;
+      --neutral-700: #545427;
+      --neutral-200: #e0e0a0;
+      --background: #fcfcf8;
+      --beige: #A6845A;
+      --active-green: #17a34a;
+    }
+    html { scroll-behavior: smooth; }
+    body { min-height: max(884px, 100dvh); }
+
+    /* Header/menu styles (same as Home) */
+    .main-nav a.active { color: var(--active-green); font-weight: 700; }
+    .main-nav a:hover,
+    #functionalNav a:hover,
+    .submenu a:hover { color: #c09e09; font-weight: 700; }
+
+    .func-nav a.active { color: var(--active-green); font-weight: 700; }
+
+    .dropdown { @apply relative; }
+    .dropdown > .submenu {
+      @apply invisible opacity-0 absolute left-0 top-full mt-0 min-w-[12rem]
+             rounded-none border border-[var(--neutral-200)] bg-white shadow-md ring-1 ring-black/5
+             transition-opacity z-50 pointer-events-auto;
+    }
+    .dropdown:hover > .submenu,
+    .dropdown:focus-within > .submenu { @apply visible opacity-100; }
+    .submenu a {
+      @apply block px-4 py-2 text-sm whitespace-nowrap hover:bg-[color:color-mix(in_oklab,white,#000_4%)];
+    }
+    #functionalNav, #functionalNav > div { overflow: visible; }
+
+    /* Page layout */
+    .page-wrap { max-width: 72rem; margin-inline: auto; }
+  </style>
+  <link rel="stylesheet" href="/assets/styles/overrides.css">
+</head>
+
+<body class="font-sans bg-[var(--background)] text-[var(--neutral-900)]">
+  <div class="min-h-screen flex flex-col overflow-x-hidden">
+    <!-- ====== HEADER (exactly like Home) ====== -->
+    <header class="sticky top-0 z-40 bg-[var(--background)]/90 backdrop-blur-sm border-b border-[var(--neutral-200)]">
+      <div class="mx-auto max-w-7xl grid grid-cols-3 items-center px-4 sm:px-6 py-4">
+        <!-- Left: Logo -->
+        <a href="/" class="flex items-center gap-2">
+          <img src="/assets/uploads/vinzi-logo.png" alt="Vinzi Clothing" class="h-20 w-auto object-contain">
+          <span class="sr-only">Vinzi Clothing</span>
+        </a>
+
+        <!-- Center: MAIN menu (static) -->
+        <nav class="main-nav flex items-center justify-center gap-7 text-[15px]">
+          <a id="nav-home"    href="/"                   class="transition">Home</a>
+          <a id="nav-shop"    href="/pages/shop.html"    class="transition">Shop</a>
+          <a id="nav-about"   href="/pages/about.html"   class="transition">About</a>
+          <a id="nav-faq"     href="/pages/faq.html"     class="transition">FAQ</a>
+          <a id="nav-contact" href="/pages/contact.html" class="transition">Contact</a>
+          <a id="nav-cart"    href="/pages/cart.html"    class="transition flex items-center gap-1">
+            <span>Cart</span>
+          </a>
+        </nav>
+
+        <!-- Right: mobile quick links -->
+        <div class="md:hidden flex justify-end gap-3 text-sm">
+          <a href="/products" class="hover:underline">Shop</a>
+          <a href="/cart" class="hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">shopping_bag</span> Cart
+          </a>
+        </div>
+      </div>
+
+      <!-- Level 2 functional menu (DB-driven, same as Home) -->
+      <nav id="functionalNav" class="func-nav mx-auto max-w-7xl px-4 sm:px-6 py-2 border-t border-[var(--neutral-200)] text-sm"></nav>
+    </header>
+
+    <!-- ====== PAGE CONTENT ====== -->
+    <main class="page-wrap px-4 sm:px-6 lg:px-8 py-6">
+      <h1 class="text-2xl sm:text-3xl font-semibold mb-2">Shop</h1>
+
+      <div id="breadcrumbs" class="text-sm opacity-80 mb-2"></div>
+      <div id="activeFilters" class="flex flex-wrap gap-2 mb-6"></div>
+
+      <div class="flex items-center justify-between mb-3">
+        <div id="resultCount" class="text-sm opacity-80"></div>
+        <div class="flex items-center gap-2">
+          <label for="sortSel" class="text-sm">Sort</label>
+          <select id="sortSel" class="border rounded px-2 py-1 text-sm">
+            <option value="-new">Newest</option>
+            <option value="price">Price: Low → High</option>
+            <option value="-price">Price: High → Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+      <div class="flex items-center justify-center gap-3 mt-8">
+        <button id="prevBtn" class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
+        <span id="pageInfo" class="text-sm"></span>
+        <button id="nextBtn" class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+      </div>
+
+      <pre id="errorBox" class="hidden mt-6 whitespace-pre-wrap text-xs bg-red-50 border border-red-200 text-red-700 p-3 rounded"></pre>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[var(--neutral-200)] bg-[color:color-mix(in_oklab,var(--background),#000_3%)] mt-auto">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-6 text-sm text-[var(--neutral-700)]">
+        <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-3">
+          <div class="text-center sm:text-left">
+            © <span id="year"></span> Vinzi Clothing. All rights reserved.
+          </div>
+          <nav class="flex flex-wrap items-center gap-4 text-[13px]">
+            <a href="/about" class="hover:underline">About</a>
+            <a href="/returns" class="hover:underline">Returns</a>
+            <a href="/faq" class="hover:underline">FAQ</a>
+            <a href="/contact" class="hover:underline">Contact</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ---------- helpers ---------- */
+    const qs  = (s, r = document) => r.querySelector(s);
+    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const getParam = (k) => new URLSearchParams(location.search).get(k);
+
+    /* ---------- ACTIVE state for MAIN menu (Home/Shop/...) ---------- */
+    (() => {
+      const p = location.pathname.toLowerCase();
+      const isHome = (p === '/') || p.endsWith('/index.html') || p.endsWith('/home.html');
+      const isShop = p.endsWith('/shop.html');
+      const setActive = id => document.getElementById(id)?.classList.add('active');
+      if (isHome) setActive('nav-home');
+      else if (isShop) setActive('nav-shop');
+    })();
+
+    /* ---------- API helper ---------- */
+    async function api(path, method="GET", body) {
+      const res = await fetch(path, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: "include"
+      });
+      return res;
+    }
+
+    /* ---------- Level-2 functional menu (from DB) — SAME AS HOME ---------- */
+    async function buildFunctionalMenu() {
+      const el = document.getElementById('functionalNav');
+      if (!el) return;
+
+      try {
+        const res = await api('/api/menus');
+        if (res.ok) {
+          const flat = await res.json();
+          el.innerHTML = renderFunctionalFromMenus(flat);
+          markFunctionalActive();
+          attachFunctionalClickHandler();
+          return;
+        }
+      } catch (_) {}
+
+      try {
+        const res = await api('/api/categories');
+        if (!res.ok) throw new Error();
+        const cats = await res.json();
+        el.innerHTML = renderFunctionalFallback(cats);
+        markFunctionalActive();
+        attachFunctionalClickHandler();
+      } catch (_) {
+        el.innerHTML = '';
+      }
+    }
+
+    function renderFunctionalFromMenus(menus) {
+      const arr = Array.isArray(menus) ? menus.slice() : [];
+      arr.sort((a,b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999) || String(a.label).localeCompare(String(b.label)));
+
+      const BLOCK = new Set(['home','shop','about','faq','contact','cart','login','register','login / register','blog']);
+      const filtered = arr.filter(item => {
+        const label = String(item.label || item.name || '').trim().toLowerCase();
+        const isHeaderType = (String(item.menuType||'').toLowerCase()==='header') || (String(item.type||'').toLowerCase()==='header');
+        if (BLOCK.has(label) || isHeaderType) return false;
+
+        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+        const hasRoute    = !!(item.slug || item.path);
+        return hasChildren || hasRoute;
+      });
+
+      const html = filtered.map(item => {
+        const label = item.label || item.name || "Menu";
+        const slug  = (item.slug || "").toLowerCase();
+        const children = Array.isArray(item.children) ? item.children : [];
+
+        if (!children.length) {
+          const path = item.path || (slug ? `/products?category=${encodeURIComponent(slug)}` : "#");
+          return `<a href="${path}" data-path="/products" data-category="${slug || ""}" data-menu data-has-children="false">${label}</a>`;
+        }
+
+        const sub = children.map(ch => {
+          const cLabel = ch.label || ch.name || ch.slug;
+          const cSlug  = (ch.slug || "").toLowerCase();
+          const cHref  = `/pages/shop.html?category=${encodeURIComponent(cLabel)}`;
+          return `<a href="${cHref}" data-path="/products" data-category="${cSlug}" data-menu data-has-children="false" data-category-label="${cLabel}">${cLabel}</a>`;
+        }).join("");
+
+        return `
+          <div class="dropdown inline-block">
+            <a href="#"
+               data-path="/products"
+               data-category="${slug}"
+               data-menu
+               data-has-children="true">${label}</a>
+            <div class="submenu">${sub}</div>
+          </div>
+        `;
+      }).join("");
+
+      return `<div class="flex items-center gap-6 overflow-visible">${html}</div>`;
+    }
+
+    function renderFunctionalFallback(cats) {
+      const list = Array.isArray(cats) ? cats : [];
+      const mk = (slug, label) => `<a href="/products?category=${encodeURIComponent(slug)}" data-path="/products" data-category="${slug}" data-menu data-has-children="false">${label}</a>`;
+
+      const bySlug = new Map(list.map(c => [String(c.slug||"").toLowerCase(), c]));
+      const womenSubs = list.filter(c => {
+        const s = String(c.slug||"").toLowerCase();
+        return s !== "women" && (s.startsWith("women-") || s.startsWith("women_") || s.startsWith("women "));
+      }).map(c => `<a href="/pages/shop.html?category=${encodeURIComponent(c.name || c.slug)}" data-path="/products" data-category="${String(c.slug).toLowerCase()}" data-menu data-has-children="false" data-category-label="${c.name || c.slug}">${c.name || c.slug}</a>`);
+
+      const menSubs = list.filter(c => {
+        const s = String(c.slug||"").toLowerCase();
+        return s !== "men" && (s.startsWith("men-") || s.startsWith("men_") || s.startsWith("men "));
+      }).map(c => `<a href="/pages/shop.html?category=${encodeURIComponent(c.name || c.slug)}" data-path="/products" data-category="${String(c.slug).toLowerCase()}" data-menu data-has-children="false" data-category-label="${c.name || c.slug}">${c.name || c.slug}</a>`);
+
+      const parts = [];
+      if (bySlug.has("women")) {
+        parts.push(`
+          <div class="dropdown inline-block">
+            <a href="#" data-path="/products" data-category="women" data-menu data-has-children="true">${bySlug.get("women").name || "Women"}</a>
+            <div class="submenu">${womenSubs.join("")}</div>
+          </div>
+        `);
+      }
+      if (bySlug.has("men")) {
+        parts.push(`
+          <div class="dropdown inline-block">
+            <a href="#" data-path="/products" data-category="men" data-menu data-has-children="true">${bySlug.get("men").name || "Men"}</a>
+            <div class="submenu">${menSubs.join("")}</div>
+          </div>
+        `);
+      }
+      list.forEach(c => {
+        const s = String(c.slug||"").toLowerCase();
+        if (s === "women" || s === "men" || s.startsWith("women-") || s.startsWith("men-")) return;
+        parts.push(mk(s, c.name || c.slug));
+      });
+
+      return `<div class="flex items-center gap-6 overflow-visible">${parts.join("")}</div>`;
+    }
+
+    function attachFunctionalClickHandler() {
+      const container = document.getElementById('functionalNav');
+      if (!container) return;
+      container.addEventListener('click', (e) => {
+        const a = e.target.closest('a[data-menu]');
+        if (!a) return;
+        const hasChildren = (a.dataset.hasChildren || '').toLowerCase() === 'true';
+
+        if (hasChildren) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+
+        if (!a.getAttribute('href') || a.getAttribute('href') === '#') {
+          e.preventDefault();
+          const catLbl = a.dataset.categoryLabel || '';
+          const qs = new URLSearchParams();
+          if (catLbl) qs.set('category', catLbl);
+          location.href = `/pages/shop.html${qs.toString() ? '?' + qs.toString() : ''}`;
+        }
+      }, { passive: false });
+    }
+
+    function markFunctionalActive() {
+      const hereCat = (getParam("category") || "").toLowerCase();
+      if (!hereCat) return;
+      let marked = false;
+      qsa('#functionalNav a[data-category]').forEach(a => {
+        const cat = (a.getAttribute('data-category') || "").toLowerCase();
+        if (cat === hereCat) { a.classList.add('active'); marked = true; }
+      });
+      if (!marked && hereCat.includes("women")) qs('#functionalNav a[data-category="women"]')?.classList.add('active');
+      if (!marked && hereCat.includes("men"))   qs('#functionalNav a[data-category="men"]')?.classList.add('active');
+    }
+
+    /* ---------- Shop logic ---------- */
+    const grid = qs("#grid"), resultCount=qs("#resultCount"), pageInfo=qs("#pageInfo");
+    const prevBtn=qs("#prevBtn"), nextBtn=qs("#nextBtn"), sortSel=qs("#sortSel");
+    const breadcrumbs=qs("#breadcrumbs"), activeFilters=qs("#activeFilters"), errorBox=qs("#errorBox");
+    const qp = new URL(location.href).searchParams;
+
+    function getParams() {
+      return {
+        g: qp.get("g") || qp.get("gender") || "",
+        c: qp.get("c") || qp.get("category") || "",
+        q: qp.get("q") || "",
+        size: qp.get("size") || "",
+        sort: qp.get("sort") || "-new",
+        page: Math.max(parseInt(qp.get("page") || "1", 10), 1),
+        limit: Math.min(Math.max(parseInt(qp.get("limit") || "24", 10), 1), 60)
+      };
+    }
+    function setParamIfChanged(k, v) {
+      const curr = qp.get(k);
+      if ((curr ?? "") === (v ?? "")) return;
+      if (!v) qp.delete(k); else qp.set(k, v);
+      history.replaceState(null, "", `${location.pathname}?${qp}`);
+    }
+    function fmtPrice(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "Rs. —";
+      return "Rs. " + new Intl.NumberFormat("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    }
+    function renderBreadcrumbs({ g, c }) {
+      const segs = [];
+      if (g) segs.push(`<span class="opacity-80">${g[0].toUpperCase()+g.slice(1)}</span>`);
+      if (c) c.split(",").forEach(s => {
+        const t = s.replace(/-/g," ");
+        segs.push(`<span class="opacity-60">/</span> <span>${t[0].toUpperCase()+t.slice(1)}</span>`);
+      });
+      breadcrumbs.innerHTML = segs.join(" ");
+    }
+    function chip(text, onClose) {
+      const id = `chip-${Math.random().toString(36).slice(2)}`;
+      queueMicrotask(() => document.getElementById(id)?.addEventListener("click", onClose));
+      return `<span class="inline-flex items-center gap-1 border rounded-full px-3 py-1 text-xs">${text}<button id="${id}" class="ml-1 text-xs opacity-60 hover:opacity-100" aria-label="Remove filter">✕</button></span>`;
+    }
+    function renderActive({ g, c, size }) {
+      const chips = [];
+      if (g) chips.push(chip(g[0].toUpperCase()+g.slice(1), ()=>{ setParamIfChanged("g",""); setParamIfChanged("gender",""); setParamIfChanged("page","1"); load(); }));
+      if (c) c.split(",").forEach(slug => {
+        const label = slug.replace(/-/g," ").replace(/\b\w/g,m=>m.toUpperCase());
+        chips.push(chip(label, ()=> {
+          const left = c.split(",").filter(x=>x!==slug);
+          setParamIfChanged("c", left.join(",")); setParamIfChanged("category",""); setParamIfChanged("page","1"); load();
+        }));
+      });
+      if (size) size.split(",").forEach(s => {
+        chips.push(chip(`Size ${s.toUpperCase()}`, ()=> {
+          const left = size.split(",").filter(x=>x!==s);
+          setParamIfChanged("size", left.join(",")); setParamIfChanged("page","1"); load();
+        }));
+      });
+      activeFilters.innerHTML = chips.join("");
+    }
+    function renderCard(p) {
+      const img = p.imageUrl || "/assets/uploads/placeholder.png";
+return `
+  <div class="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+    <a href="/pages/productdetail.html?slug=${encodeURIComponent(p.slug)}" class="block">
+      <div class="aspect-[4/5] w-full bg-neutral-100 overflow-hidden">
+        <img src="${img}" alt="${p.name}" class="h-full w-full object-cover group-hover:scale-[1.02] transition" loading="lazy" onerror="this.src='/assets/uploads/placeholder.png'">
+      </div>
+      <div class="p-3">
+        <div class="text-sm font-medium line-clamp-1">${p.name}</div>
+        <!-- removed the category/description line -->
+        <div class="mt-1 font-bold" style="color: var(--beige);">${fmtPrice(p.priceCents)}</div>
+      </div>
+    </a>
+  </div>`;
+    }
+    function showError(msg, extra) {
+      console.error(msg, extra || "");
+      errorBox.textContent = `${msg}\n${extra ? JSON.stringify(extra, null, 2) : ""}`;
+      errorBox.classList.remove("hidden");
+    }
+
+    sortSel.addEventListener("change", () => { setParamIfChanged("sort", sortSel.value); setParamIfChanged("page","1"); load(); });
+    prevBtn.addEventListener("click", () => { const p=getParams(); if (p.page>1) { setParamIfChanged("page", String(p.page-1)); load(); } });
+    nextBtn.addEventListener("click", () => { const p=getParams(); setParamIfChanged("page", String(p.page+1)); load(); });
+
+    async function load() {
+      errorBox.classList.add("hidden");
+      const p = getParams();
+      sortSel.value = p.sort; renderBreadcrumbs(p); renderActive(p);
+
+      const qs = new URLSearchParams({
+        ...(p.g?{g:p.g}:{}) , ...(p.c?{c:p.c}:{}) , ...(p.q?{q:p.q}:{}) , ...(p.size?{size:p.size}:{}) ,
+        sort:p.sort, page:String(p.page), limit:String(p.limit)
+      });
+
+      let resp;
+      try { resp = await fetch(`/api/products/filter?${qs.toString()}`, { credentials: "include" }); }
+      catch (err) { showError("Network error calling /api/products/filter", String(err)); return; }
+
+      let data;
+      try { data = await resp.json(); }
+      catch (err) { showError("Invalid JSON from /api/products/filter", String(err)); return; }
+
+      if (!data.ok) {
+        showError("API error /api/products/filter", data);
+        grid.innerHTML = `<div class="col-span-full text-center text-sm">Failed to load products.</div>`;
+        return;
+      }
+
+      resultCount.textContent = `${data.total} item${data.total===1?"":"s"} found`;
+      const lastPage = Math.max(1, Math.ceil(data.total / data.limit));
+      pageInfo.textContent = `Page ${data.page} of ${lastPage}`;
+      grid.innerHTML = data.items.map(renderCard).join("");
+      prevBtn.disabled = (data.page <= 1);
+      nextBtn.disabled = (data.page >= lastPage);
+    }
+
+    /* ---------- Init ---------- */
+    (async function init() {
+      await buildFunctionalMenu();  // Level-2 menu from DB (same as Home)
+      load();
+    })();
+  </script>
+</body>
+</html>
