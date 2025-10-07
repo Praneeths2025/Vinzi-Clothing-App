@@ -1,0 +1,663 @@
+<!-- Vinzi Clothing — Product Detail
+     Version: v01.03.15
+     Date: 2025-10-03 (Asia/Colombo)
+     Change:
+       - Full-page overlay (cloudy/blur) for Size Guide and Care Details
+       - Images: /assets/logo/Size_Chart.png and /assets/logo/Care_Details.png
+       - Keeps existing layout and look unchanged unless overlay is open
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product | Vinzi Clothing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin/>
+  <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Spline+Sans:wght@400;500;700&family=Playfair+Display:wght@400;500;700;900"
+        onload="this.rel='stylesheet'">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <style type="text/tailwindcss">
+    :root {
+      --neutral-900: #1c1c0d;
+      --neutral-700: #545427;
+      --neutral-200: #e0e0a0;
+      --background: #fcfcf8;
+      --beige: #A6845A;
+      --active-green: #17a34a;
+    }
+    html { scroll-behavior: smooth; }
+    body { min-height: max(884px, 100dvh); }
+
+    /* Header/menu styles */
+    .main-nav a.active { color: var(--active-green); font-weight: 700; }
+    .main-nav a:hover,
+    #functionalNav a:hover,
+    .submenu a:hover { color: #c09e09; font-weight: 700; }
+
+    .func-nav a.active { color: var(--active-green); font-weight: 700; }
+
+    .dropdown { @apply relative; }
+    .dropdown > .submenu {
+      @apply invisible opacity-0 absolute left-0 top-full mt-0 min-w-[12rem]
+             rounded-none border border-[var(--neutral-200)] bg-white shadow-md ring-1 ring-black/5
+             transition-opacity z-50 pointer-events-auto;
+    }
+    .dropdown:hover > .submenu,
+    .dropdown:focus-within > .submenu { @apply visible opacity-100; }
+    .submenu a { @apply block px-4 py-2 text-sm whitespace-nowrap hover:bg-[color:color-mix(in_oklab,white,#000_4%)]; }
+
+    .page-wrap { max-width: 72rem; margin-inline: auto; }
+  </style>
+
+  <link rel="stylesheet" href="/assets/styles/overrides.css">
+</head>
+
+<body class="font-sans bg-[var(--background)] text-[var(--neutral-900)]">
+  <div class="min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- ====== HEADER ====== -->
+    <header class="sticky top-0 z-40 bg-[var(--background)]/90 backdrop-blur-sm border-b border-[var(--neutral-200)]">
+      <div class="mx-auto max-w-7xl grid grid-cols-3 items-center px-4 sm:px-6 py-4">
+        <a href="/" class="flex items-center gap-2">
+          <img src="/assets/uploads/vinzi-logo.png" alt="Vinzi Clothing" class="h-20 w-auto object-contain">
+          <span class="sr-only">Vinzi Clothing</span>
+        </a>
+
+        <nav class="main-nav flex items-center justify-center gap-7 text-[15px]">
+          <a id="nav-home"    href="/"                   class="transition">Home</a>
+          <a id="nav-shop"    href="/pages/shop.html"    class="transition">Shop</a>
+          <a id="nav-about"   href="/pages/about.html"   class="transition">About</a>
+          <a id="nav-faq"     href="/pages/faq.html"     class="transition">FAQ</a>
+          <a id="nav-contact" href="/pages/contact.html" class="transition">Contact</a>
+          <a id="nav-cart"    href="/pages/cart.html"    class="transition flex items-center gap-1">
+            <span>Cart</span>
+          </a>
+        </nav>
+
+        <div class="md:hidden flex justify-end gap-3 text-sm">
+          <a href="/pages/shop.html" class="hover:underline">Shop</a>
+          <a href="/pages/cart.html" class="hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">shopping_bag</span> Cart
+          </a>
+        </div>
+      </div>
+
+      <nav id="functionalNav" class="func-nav mx-auto max-w-7xl px-4 sm:px-6 py-2 border-t border-[var(--neutral-200)] text-sm"></nav>
+    </header>
+
+    <!-- ====== PAGE CONTENT ====== -->
+    <main class="page-wrap px-4 sm:px-6 lg:px-8 py-6">
+      
+      <div id="breadcrumbs" class="mb-4"></div>
+
+      <div id="view"></div>
+
+      <pre id="err" class="hidden mt-6 whitespace-pre-wrap text-xs bg-red-50 border border-red-200 text-red-700 p-3 rounded"></pre>
+
+      <!-- Reviews (unchanged) -->
+      <section id="reviews" class="mt-10 border-t pt-6">
+        <div class="mb-6">
+          <h2 class="text-lg md:text-xl font-semibold">Reviews</h2>
+        </div>
+        <div class="flex flex-col gap-6 md:flex-row md:items-center md:gap-10">
+          <div class="flex items-center gap-4">
+            <div class="text-4xl md:text-5xl font-bold leading-none">4.5</div>
+            <div>
+              <div class="flex text-amber-500">
+                <svg class="h-5 w-5"><use href="#star-solid"/></svg>
+                <svg class="h-5 w-5"><use href="#star-solid"/></svg>
+                <svg class="h-5 w-5"><use href="#star-solid"/></svg>
+                <svg class="h-5 w-5"><use href="#star-solid"/></svg>
+                <svg class="h-5 w-5 text-gray-300"><use href="#star-solid"/></svg>
+              </div>
+              <div class="text-sm text-gray-600">120 reviews</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[var(--neutral-200)] bg-[color:color-mix(in_oklab,var(--background),#000_3%)] mt-auto">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-6 text-sm text-[var(--neutral-700)]">
+        <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-3">
+          <div class="text-center sm:text-left">
+            © <span id="year"></span> Vinzi Clothing. All rights reserved.
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====== FULL-PAGE OVERLAY (shared for Size Guide & Care Details) ====== -->
+  <div id="fullOverlay"
+       class="fixed inset-0 z-[100] hidden bg-black/70 backdrop-blur-sm p-4 md:p-8">
+    <button id="fullOverlayClose"
+            class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow
+                   grid place-items-center text-2xl leading-none">&times;</button>
+    <div class="h-full w-full grid place-items-center">
+      <img id="fullOverlayImg"
+           src=""
+           alt="Guide"
+           class="max-h-[30vw max-w-[35vw] md:max-w-[40vw] object-contain rounded-xl bg-white shadow-lg"/>
+    </div>
+  </div>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* helpers */
+    const qs  = (s, r = document) => r.querySelector(s);
+    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const getParam = (k) => new URLSearchParams(location.search).get(k);
+
+    /* ACTIVE menu */
+    (() => {
+      document.getElementById('nav-home')?.classList.add('active');
+      document.getElementById('nav-shop')?.classList.remove('active');
+    })();
+
+    /* API helper */
+    async function api(path, method="GET", body) {
+      const res = await fetch(path, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: "include"
+      });
+      return res;
+    }
+
+    /* Functional menu (unchanged) */
+    async function buildFunctionalMenu() {
+      const el = document.getElementById('functionalNav');
+      if (!el) return;
+
+      try {
+        const res = await api('/api/menus');
+        if (res.ok) {
+          const flat = await res.json();
+          el.innerHTML = renderFunctionalFromMenus(flat);
+          markFunctionalActive();
+          attachFunctionalClickHandler();
+          return;
+        }
+      } catch (_) {}
+
+      try {
+        const res = await api('/api/categories');
+        if (!res.ok) throw new Error();
+        const cats = await res.json();
+        el.innerHTML = renderFunctionalFallback(cats);
+        markFunctionalActive();
+        attachFunctionalClickHandler();
+      } catch (_) {
+        el.innerHTML = '';
+      }
+    }
+
+    function renderFunctionalFromMenus(menus) {
+      const arr = Array.isArray(menus) ? menus.slice() : [];
+      arr.sort((a,b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999) || String(a.label).localeCompare(String(b.label)));
+
+      const BLOCK = new Set(['home','shop','about','faq','contact','cart','login','register','login / register','blog']);
+      const filtered = arr.filter(item => {
+        const label = String(item.label || item.name || '').trim().toLowerCase();
+        const isHeaderType = (String(item.menuType||'').toLowerCase()==='header') || (String(item.type||'').toLowerCase()==='header');
+        if (BLOCK.has(label) || isHeaderType) return false;
+
+        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+        const hasRoute    = !!(item.slug || item.path);
+        return hasChildren || hasRoute;
+      });
+
+      const html = filtered.map(item => {
+        const label = item.label || item.name || "Menu";
+        const children = Array.isArray(item.children) ? item.children : [];
+
+        if (!children.length) {
+          const path = `/pages/shop.html?category=${encodeURIComponent(label)}`;
+          return `<a href="${path}" data-menu data-has-children="false">${label}</a>`;
+        }
+
+        const kids = children.map(ch => {
+          const cLabel = ch.label || ch.name || "Item";
+          const path = `/pages/shop.html?category=${encodeURIComponent(cLabel)}`;
+          return `<a href="${path}" data-path="/pages/shop.html" data-menu data-has-children="false">${cLabel}</a>`;
+        }).join("");
+
+        return `
+          <div class="dropdown inline-block">
+            <button class="px-3 py-2">${label}</button>
+            <div class="submenu">${kids}</div>
+          </div>
+        `;
+      }).join("");
+
+      return `<div class="flex items-center gap-4 flex-wrap">${html}</div>`;
+    }
+
+    function renderFunctionalFallback(cats) {
+      const arr = Array.isArray(cats) ? cats : [];
+      const html = arr.map(c => {
+        const label = String(c || '').trim();
+        if (!label) return '';
+        return `<a href="/pages/shop.html?category=${encodeURIComponent(label)}" data-menu data-has-children="false">${label}</a>`;
+      }).join("");
+      return `<div class="flex items-center gap-4 flex-wrap">${html}</div>`;
+    }
+
+    function markFunctionalActive() {
+      const cat = getParam('category');
+      if (!cat) return;
+      qsa('#functionalNav a').forEach(a => {
+        if (a.textContent.trim().toLowerCase() === String(cat).trim().toLowerCase()) {
+          a.classList.add('active');
+        }
+      });
+    }
+
+    function attachFunctionalClickHandler() {
+      const nav = document.getElementById('functionalNav');
+      if (!nav) return;
+      nav.addEventListener('click', (e) => {
+        const a = e.target.closest('[data-menu]');
+        if (!a) return;
+        const hasChildren = a.getAttribute('data-has-children') === 'true';
+        if (hasChildren) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    /* ---------- Product detail ---------- */
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const parseSizes = sizes => Array.isArray(sizes) ? sizes.filter(Boolean)
+                        : String(sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+    function fmtPriceTag(amount, currency) {
+      const cur = (currency || 'LKR').toUpperCase();
+      const n = Number(amount || 0);
+      return `${cur} ${n.toLocaleString('en-US')}`;
+    }
+
+    async function getProductBySlug(slug) {
+      try {
+        const r1 = await fetch('/api/products?slug=' + encodeURIComponent(slug), { credentials:'include' });
+        if (r1.ok) {
+          const json = await r1.json();
+          const arr = Array.isArray(json) ? json
+                    : Array.isArray(json?.items) ? json.items
+                    : (json && typeof json==='object' ? [json] : []);
+          const hit = arr.find(p => String(p.slug||'') === slug);
+          if (hit) return hit;
+        }
+      } catch {}
+      try {
+        const r2 = await fetch('/api/products', { credentials:'include' });
+        if (r2.ok) {
+          const list = await r2.json();
+          const arr = Array.isArray(list) ? list : Array.isArray(list?.items) ? list.items : [];
+          const hit = arr.find(p => String(p.slug||'') === slug);
+          if (hit) return hit;
+        }
+      } catch {}
+      try {
+        const r3 = await fetch('/api/products/filter?q=' + encodeURIComponent(slug), { credentials:'include' });
+        if (r3.ok) {
+          const json = await r3.json();
+          const list = json?.items || json?.products || json?.data || [];
+          return list.find(p => String(p.slug||'') === slug) || list[0];
+        }
+      } catch {}
+      return null;
+    }
+
+    function renderProduct(p) {
+      const title = esc(p?.name || 'Untitled');
+      const ct = document.getElementById('crumbTitle'); if (ct) ct.textContent = title;
+
+      const sku   = esc(p?.sku || '');
+      const desc  = esc(String(p?.description || '').split('\n')[0]);
+      const img   = esc(p?.imageUrl || '/assets/uploads/placeholder.png');
+      const sizes = parseSizes(p?.sizes);
+      const price = fmtPriceTag(p?.priceCents ?? p?.price ?? 0, p?.currency);
+
+      return `
+      <article class="flex flex-col md:flex-row gap-6 bg-white rounded-2xl border border-slate-200 p-4 md:p-6">
+        <!-- Image -->
+        <div class="md:w-5/12 w-full">
+            <div id="zoomBox" class="aspect-[3/4] bg-slate-100 overflow-hidden rounded-xl">
+              <img id="mainImg"
+                  src="${img}"
+                  alt="${title}"
+                  class="w-full h-full object-cover transition-transform duration-200 will-change-transform cursor-zoom-in"
+                  onerror="this.src='/assets/uploads/placeholder.png'">
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="md:w-7/12 w-full flex flex-col gap-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-semibold leading-tight">${title}</h1>
+              <p class="mt-1 text-sm text-slate-500">${sku ? `SKU: ${sku}` : ''}</p>
+            </div>
+          </div>
+
+          <p class="text-slate-700 text-base md:text-lg mt-3">${desc}</p>
+          <div class="text-2xl md:text-3xl font-bold tracking-tight text-[#8B6B3E] mt-3">${price}</div>
+
+          ${sizes.length ? `
+          <div class="mt-3">
+            <div class="text-sm font-medium mb-2">Available sizes</div>
+            <div class="flex flex-wrap gap-2" id="sizes">
+              ${sizes.map(s => `
+                <button type="button"
+                        class="px-3 h-9 rounded-full border border-slate-300 text-sm hover:bg-black hover:text-white transition-colors"
+                        data-size="${esc(s)}">${esc(s)}</button>
+              `).join('')}
+            </div>
+          </div>` : ''}
+
+          <!-- Buttons row (unchanged layout) -->
+          <div class="mt-4 flex gap-3">
+            <button type="button" id="addBtn" class="flex-1 h-11 rounded-xl bg-black text-white font-semibold disabled:opacity-40" disabled>
+              Add to cart
+            </button>
+            <button type="button" id="buyBtn" class="flex-1 h-11 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 font-semibold">
+              Buy now
+            </button>
+          </div>
+
+          <!-- Extra actions (unchanged layout) -->
+          <div class="mt-1 flex items-center justify-center gap-2">
+            <button type="button" data-action="care" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M4 6h16M5 6l1.2 10.8A2 2 0 0 0 8.2 19h7.6a2 2 0 0 0 2-1.8L19 6M8 10s1.2 1.5 4 1.5S16 10 16 10" />
+              </svg>
+              Care Details
+            </button>
+            <button type="button" data-action="size" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M3 8.5 8.5 3 21 15.5 15.5 21 3 8.5Zm5-1 8.5 8.5M10 6l2 2M12.5 8.5l2 2M15 11l2 2" />
+              </svg>
+              Size Guide
+            </button>
+            <button type="button" id="wishlist-btn" class="group inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              <svg id="wishlist-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-colors"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path id="wishlist-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                      d="M21 8.5c0 4.7-6.5 8.5-9 10-2.5-1.5-9-5.3-9-10a5.5 5.5 0 0 1 10-3 5.5 5.5 0 0 1 8 3Z"/>
+              </svg>
+              <span>Add to wishlist</span>
+            </button>
+          </div>
+
+          <!-- (Inline panel kept; unused now; harmless) -->
+          <div id="guidePanel" class="mt-3 hidden">
+            <img id="guideImg" src="" alt="" class="w-full rounded-xl border border-slate-200 object-contain">
+          </div>
+
+        </div>
+      </article>
+      `;
+    }
+
+    /* ---------- Size selection + button guards ---------- */
+    function wireDetailEvents(root) {
+      const sizeBox = root.querySelector('#sizes');
+      const addBtn  = root.querySelector('#addBtn');
+      const buyBtn  = root.querySelector('#buyBtn');
+      let selectedSize = '';
+
+      if (sizeBox) {
+        if (addBtn) addBtn.disabled = true;
+        if (buyBtn) buyBtn.disabled = true;
+
+        sizeBox.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-size]');
+          if (!btn) return;
+
+          selectedSize = btn.getAttribute('data-size') || '';
+
+          // highlight: black bg + white text
+          sizeBox.querySelectorAll('button[data-size]').forEach(b => {
+            b.classList.remove('ring','ring-1','bg-black','text-white');
+          });
+          btn.classList.add('ring','ring-1','bg-black','text-white');
+
+          if (addBtn) addBtn.disabled = false;
+          if (buyBtn) buyBtn.disabled = false;
+        });
+      } else {
+        if (addBtn) addBtn.disabled = false;
+        if (buyBtn) buyBtn.disabled = false;
+      }
+
+      // message if clicking disabled buttons
+      root.addEventListener('click', (e) => {
+        const b = e.target.closest('#addBtn, #buyBtn');
+        if (!b) return;
+        if (b.disabled) {
+          alert('Select a size to continue.');
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      // extra guard when enabled
+      addBtn?.addEventListener('click', () => {
+        if (sizeBox && !selectedSize) { alert('Select a size to continue.'); return; }
+        console.log('Add to cart (demo), size:', selectedSize || '(n/a)');
+      });
+      buyBtn?.addEventListener('click', () => {
+        if (sizeBox && !selectedSize) { alert('Select a size to continue.'); return; }
+        console.log('Buy now (demo), size:', selectedSize || '(n/a)');
+      });
+    }
+  // Hover zoom that follows the cursor (no layout changes)
+  function enableHoverZoom(root, scale = 2.5) {
+    const box = root.querySelector('#zoomBox');
+    const img = root.querySelector('#mainImg');
+    if (!box || !img) return;
+
+    // Only run on devices with a fine pointer (desktop)
+    const finePointer = matchMedia('(pointer:fine)').matches;
+
+    function onMove(e) {
+      const rect = box.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      img.style.transformOrigin = `${x}% ${y}%`;
+      img.style.transform = `scale(${scale})`;
+    }
+    function onLeave() {
+      img.style.transformOrigin = 'center';
+      img.style.transform = 'scale(1)';
+    }
+
+    if (finePointer) {
+      box.addEventListener('mousemove', onMove);
+      box.addEventListener('mouseenter', onMove);
+      box.addEventListener('mouseleave', onLeave);
+    }
+  }
+// Read trail from current URL first; fallback to Shop referrer
+function buildTrail() {
+  // 1) From current URL: ?g=Women&category=Batik%20Dresses
+  const params = new URLSearchParams(location.search);
+  const g = params.get('g');              // e.g., "Women"
+  const c = params.get('category');       // e.g., "Batik Dresses"
+  if (g || c) {
+    const qs = new URLSearchParams();
+    if (g) qs.set('g', g);
+    if (c) qs.set('category', c);
+    return { g, c, backHref: '/pages/shop.html?' + qs.toString() };
+  }
+
+  // 2) Fallback: read from referrer if it was the Shop page
+  try {
+    const u = new URL(document.referrer || '', location.origin);
+    if (!/\/pages\/shop\.html$/i.test(u.pathname)) return null;
+    return {
+      g: u.searchParams.get('g'),
+      c: u.searchParams.get('category'),
+      backHref: '/pages/shop.html?' + u.searchParams.toString()
+    };
+  } catch { return null; }
+}
+
+// Render "Home / Women / Batik Dresses /" + bold product name
+function renderDetailBreadcrumbs(productTitle) {
+  const wrap = document.getElementById('breadcrumbs');
+  if (!wrap) return;
+
+  // typography: parents lighter; product darker & larger
+  const lightCls = 'text-sm md:text-base opacity-80';
+  const sepCls   = 'opacity-50';
+  const headCls  = 'text-base md:text-lg font-semibold text-[var(--neutral-900)]';
+
+  const trail = buildTrail();
+  const parts = [];
+
+  // Always start with Home
+  parts.push(`<a class="underline ${lightCls}" href="/">Home</a>`);
+
+  // Parent + category if available
+  if (trail && (trail.g || trail.c)) {
+    if (trail.g) {
+      parts.push(`<span class="${sepCls}"> / </span>`);
+      parts.push(`<a class="underline ${lightCls}" href="${trail.backHref}">${trail.g}</a>`);
+    }
+    if (trail.c) {
+      const cQs = new URLSearchParams(trail.backHref.split('?')[1] || '');
+      cQs.set('category', trail.c);
+      const cHref = '/pages/shop.html?' + cQs.toString();
+      parts.push(`<span class="${sepCls}"> / </span>`);
+      parts.push(`<a class="underline ${lightCls}" href="${cHref}">${trail.c}</a>`);
+    }
+  } else {
+    // Fallback path when no params/referrer: Home / Shop
+    parts.push(`<span class="${sepCls}"> / </span>`);
+    parts.push(`<a class="underline ${lightCls}" href="/pages/shop.html">Shop</a>`);
+  }
+
+  // Divider before product name
+  parts.push(`<span class="${sepCls}"> / </span>`);
+
+  // Product name (dark, bold, larger)
+  parts.push(`<span class="${headCls}">${productTitle}</span>`);
+
+  wrap.innerHTML = parts.join('');
+}
+  /* ---------- Init ---------- */
+    (async function init() {
+      await buildFunctionalMenu();
+
+      const slug = String(getParam('slug') || '');
+      if (!slug) {
+        const err = 'Missing ?slug in URL';
+        qs('#err').textContent = err; qs('#err').classList.remove('hidden'); return;
+      }
+      const p = await getProductBySlug(slug);
+      if (!p) {
+        const err = 'Product not found for slug: ' + slug;
+        qs('#err').textContent = err; qs('#err').classList.remove('hidden'); return;
+      }
+      const html = renderProduct(p);
+      qs('#view').innerHTML = html;
+      renderDetailBreadcrumbs(String(p?.name || 'Product'));
+      // 🔍 add this line to activate the hover zoom:
+      enableHoverZoom(qs('#view'), 2);   // 2 = 2x zoom. Change to 1.8 or 2.5 if you want.
+
+      // bind size behavior
+      wireDetailEvents(qs('#view'));
+
+      // === FULL-PAGE OVERLAY wiring (shared) ===
+      const fullOverlay = document.getElementById('fullOverlay');
+      const fullOverlayImg = document.getElementById('fullOverlayImg');
+      const fullOverlayClose = document.getElementById('fullOverlayClose');
+
+      function openFull(imgSrc, alt) {
+        if (!fullOverlay || !fullOverlayImg) return;
+        fullOverlayImg.src = imgSrc;
+        fullOverlayImg.alt = alt || 'Guide';
+        fullOverlay.classList.remove('hidden');
+      }
+      function closeFull() {
+        if (!fullOverlay || !fullOverlayImg) return;
+        fullOverlay.classList.add('hidden');
+        // optional: clear src to free memory on mobile
+        // fullOverlayImg.src = '';
+      }
+
+      // Buttons
+      const openCare = document.querySelector('[data-action="care"]');
+      const openSize = document.querySelector('[data-action="size"]');
+
+      openCare && openCare.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFull('/assets/logo/Care_Details.png', 'Care details');
+      });
+      openSize && openSize.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFull('/assets/logo/Size_Chart.png', 'Size guide');
+      });
+
+      // Close interactions
+      fullOverlayClose && fullOverlayClose.addEventListener('click', closeFull);
+      fullOverlay && fullOverlay.addEventListener('click', (e) => {
+        if (e.target === fullOverlay) closeFull(); // click on the cloudy backdrop
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !fullOverlay.classList.contains('hidden')) closeFull();
+      });
+    })();
+  </script>
+
+  <svg class="hidden">
+    <symbol id="star-solid" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.036a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.802-2.036a1 1 0 00-1.176 0L6.705 16.28c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.07 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l.979-3.292z"/>
+    </symbol>
+    <symbol id="thumb-up" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+            d="M7 11v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Zm4 10h5a4 4 0 0 0 4-4v-5a2 2 0 0 0-2-2h-4.2l.5-3a2.5 2.5 0 0 0-4.9 1l-.4 2.6A3 3 0 0 1 7.1 12H11v9Z"/>
+    </symbol>
+    <symbol id="chat" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+            d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-4A8 8 0 1 1 21 12Z"/>
+    </symbol>
+  </svg>
+
+  <!-- Existing modals kept (unused for these buttons; safe to keep) -->
+  <dialog id="modal-care" class="rounded-2xl p-0 backdrop:bg-black/50">
+    <div class="w-[90vw] max-w-xl overflow-hidden rounded-2xl bg-white">
+      <div class="flex items-center justify-between border-b p-4">
+        <h3 class="text-lg font-semibold">Care Details</h3>
+        <button data-close="modal-care" class="rounded p-1 hover:bg-gray-100">✕</button>
+      </div>
+      <img src="/assets/logo/Care_Details.png" alt="Care details" class="mx-auto block max-h-[80vh] w-full object-contain">
+    </div>
+  </dialog>
+  <dialog id="modal-size" class="rounded-2xl p-0 backdrop:bg-black/50">
+    <div class="w-[90vw] max-w-xl overflow-hidden rounded-2xl bg-white">
+      <div class="flex items-center justify-between border-b p-4">
+        <h3 class="text-lg font-semibold">Size Guide</h3>
+        <button data-close="modal-size" class="rounded p-1 hover:bg-gray-100">✕</button>
+      </div>
+      <img src="/assets/logo/Size_Chart.png" alt="Size guide" class="mx-auto block max-h-[80vh] w-full object-contain">
+    </div>
+  </dialog>
+</body>
+</html>
