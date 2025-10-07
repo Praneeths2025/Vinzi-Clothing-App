@@ -1,11 +1,12 @@
 <!-- Vinzi Clothing — Shop
-     Version: v01.03.04
-     Date: 2025-09-26 22:15 (Asia/Colombo)
+     Version: v01.03.06
+     Date: 2025-10-07 (Asia/Colombo)
 
-     Changes:
-     [v01.03.04] Top nav: highlight "Shop".
-                 Functional menu: parents with children do NOT navigate; only leaf items navigate.
-                 Added event delegation for functional menu clicks.
+     Reset:
+     - Restored functional menu code to match Home (DB-driven: /api/menus, fallback /api/categories)
+     - Kept hero (thick back arrow, no white circle) and product cards intact
+     - Removed filter chips row (no-op kept to avoid errors)
+     - No visual changes to your existing look
 -->
 <!doctype html>
 <html lang="en">
@@ -65,7 +66,7 @@
 
 <body class="font-sans bg-[var(--background)] text-[var(--neutral-900)]">
   <div class="min-h-screen flex flex-col overflow-x-hidden">
-    <!-- ====== HEADER (exactly like Home) ====== -->
+    <!-- ====== HEADER (like Home) ====== -->
     <header class="sticky top-0 z-40 bg-[var(--background)]/90 backdrop-blur-sm border-b border-[var(--neutral-200)]">
       <div class="mx-auto max-w-7xl grid grid-cols-3 items-center px-4 sm:px-6 py-4">
         <!-- Left: Logo -->
@@ -74,7 +75,7 @@
           <span class="sr-only">Vinzi Clothing</span>
         </a>
 
-        <!-- Center: MAIN menu (static) -->
+        <!-- Center: MAIN menu -->
         <nav class="main-nav flex items-center justify-center gap-7 text-[15px]">
           <a id="nav-home"    href="/"                   class="transition">Home</a>
           <a id="nav-shop"    href="/pages/shop.html"    class="transition">Shop</a>
@@ -95,16 +96,39 @@
         </div>
       </div>
 
-      <!-- Level 2 functional menu (DB-driven, same as Home) -->
+      <!-- Level 2 functional menu (DB-driven) -->
       <nav id="functionalNav" class="func-nav mx-auto max-w-7xl px-4 sm:px-6 py-2 border-t border-[var(--neutral-200)] text-sm"></nav>
     </header>
 
+    <!-- ====== HERO ====== -->
+    <section id="shopHero" class="relative w-full">
+      <div class="h-32 sm:h-28 lg:h-32 w-full bg-center bg-cover"
+           style="background-image:url('/assets/uploads/Hero4.jpg');">
+        <!-- dark overlay -->
+        <div class="absolute inset-0 bg-black/35"></div>
+
+        <!-- title -->
+        <div class="absolute inset-0 page-wrap px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
+          <div class="flex items-center gap-3 mb-1">
+            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-white hover:opacity-90">
+              <!-- Thick chevron arrow (no background) -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                   class="w-7 h-7" stroke="currentColor" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"></path>
+              </svg>
+              <span class="sr-only">Back</span>
+            </a>
+            <h1 id="heroTitle" class="text-4xl sm:text-5xl font-semibold text-white drop-shadow"></h1>
+          </div>
+          <div id="heroCrumbs" class="hidden"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ====== PAGE CONTENT ====== -->
     <main class="page-wrap px-4 sm:px-6 lg:px-8 py-6">
-      <h1 class="text-2xl sm:text-3xl font-semibold mb-2">Shop</h1>
-
-      <div id="breadcrumbs" class="text-sm opacity-80 mb-2"></div>
-      <div id="activeFilters" class="flex flex-wrap gap-2 mb-6"></div>
+      <h1 class="text-2xl sm:text-3xl font-semibold mb-2 hidden">Shop</h1>
+      <div id="breadcrumbs" class="text-sm opacity-80 mb-2 hidden"></div>
 
       <div class="flex items-center justify-between mb-3">
         <div id="resultCount" class="text-sm opacity-80"></div>
@@ -158,12 +182,9 @@
 
     /* ---------- ACTIVE state for MAIN menu (Home/Shop/...) ---------- */
     (() => {
-      const p = location.pathname.toLowerCase();
-      const isHome = (p === '/') || p.endsWith('/index.html') || p.endsWith('/home.html');
-      const isShop = p.endsWith('/shop.html');
-      const setActive = id => document.getElementById(id)?.classList.add('active');
-      if (isHome) setActive('nav-home');
-      else if (isShop) setActive('nav-shop');
+      // Keep Home active (green) on Shop page as you wanted
+      document.getElementById('nav-home')?.classList.add('active');
+      document.getElementById('nav-shop')?.classList.remove('active');
     })();
 
     /* ---------- API helper ---------- */
@@ -177,7 +198,7 @@
       return res;
     }
 
-    /* ---------- Level-2 functional menu (from DB) — SAME AS HOME ---------- */
+    /* ---------- Level-2 functional menu (DB-driven) — SAME AS HOME ---------- */
     async function buildFunctionalMenu() {
       const el = document.getElementById('functionalNav');
       if (!el) return;
@@ -196,7 +217,7 @@
       try {
         const res = await api('/api/categories');
         if (!res.ok) throw new Error();
-        const cats = await res.json();
+        const cats = await res.json(); // [{slug,name}]
         el.innerHTML = renderFunctionalFallback(cats);
         markFunctionalActive();
         attachFunctionalClickHandler();
@@ -207,8 +228,11 @@
 
     function renderFunctionalFromMenus(menus) {
       const arr = Array.isArray(menus) ? menus.slice() : [];
+
+      // sort by sortOrder then label
       arr.sort((a,b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999) || String(a.label).localeCompare(String(b.label)));
 
+      // filter out header items from functional row
       const BLOCK = new Set(['home','shop','about','faq','contact','cart','login','register','login / register','blog']);
       const filtered = arr.filter(item => {
         const label = String(item.label || item.name || '').trim().toLowerCase();
@@ -225,11 +249,13 @@
         const slug  = (item.slug || "").toLowerCase();
         const children = Array.isArray(item.children) ? item.children : [];
 
+        // leaf item
         if (!children.length) {
           const path = item.path || (slug ? `/products?category=${encodeURIComponent(slug)}` : "#");
-          return `<a href="${path}" data-path="/products" data-category="${slug || ""}" data-menu data-has-children="false">${label}</a>`;
+          return `<a href="${path}" data-path="/products" data-category="${slug || ""}" data-menu data-has-children="false" data-category-label="${label}">${label}</a>`;
         }
 
+        // parent with children (do not navigate on click)
         const sub = children.map(ch => {
           const cLabel = ch.label || ch.name || ch.slug;
           const cSlug  = (ch.slug || "").toLowerCase();
@@ -294,45 +320,73 @@
     }
 
     function attachFunctionalClickHandler() {
-      const container = document.getElementById('functionalNav');
-      if (!container) return;
-      container.addEventListener('click', (e) => {
-        const a = e.target.closest('a[data-menu]');
-        if (!a) return;
-        const hasChildren = (a.dataset.hasChildren || '').toLowerCase() === 'true';
+    const container = document.getElementById('functionalNav');
+    if (!container) return;
 
-        if (hasChildren) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
+    container.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-menu]');
+      if (!a) return;
 
-        if (!a.getAttribute('href') || a.getAttribute('href') === '#') {
-          e.preventDefault();
-          const catLbl = a.dataset.categoryLabel || '';
-          const qs = new URLSearchParams();
-          if (catLbl) qs.set('category', catLbl);
-          location.href = `/pages/shop.html${qs.toString() ? '?' + qs.toString() : ''}`;
-        }
-      }, { passive: false });
-    }
+      const hasChildren = (a.dataset.hasChildren || '').toLowerCase() === 'true';
+      if (hasChildren) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
 
+      // 1) If a leaf has no usable href, go to Shop with ?category=<label>
+      const href = a.getAttribute('href') || '';
+      const isMissing = !href || href === '#';
+
+      if (isMissing) {
+        e.preventDefault();
+        const catLbl = a.dataset.categoryLabel || a.textContent.trim();
+        const qs = new URLSearchParams();
+        if (catLbl) qs.set('category', catLbl);
+        location.href = `/pages/shop.html${qs.toString() ? '?' + qs.toString() : ''}`;
+        return;
+      }
+
+      // 2) If a leaf points to a non-existent products page, reroute to Shop filter
+      //    Examples caught:
+      //    /pages/products, /pages/products.html, /products, /products?category=...
+      const brokenProductsTarget =
+        /\/pages\/products(\.html)?$/i.test(href) ||
+        /^\/products(?:$|\?)/i.test(href);
+
+      if (brokenProductsTarget) {
+        e.preventDefault();
+        const parentLbl = a.closest('.dropdown')
+          ?.querySelector('a[data-has-children="true"]')
+          ?.textContent?.trim() || '';
+        const catLbl = a.dataset.categoryLabel || a.textContent.trim();
+
+        const qs = new URLSearchParams();
+        if (parentLbl) qs.set('g', parentLbl);
+        if (catLbl)    qs.set('category', catLbl);
+
+        location.href = `/pages/shop.html${qs.toString() ? '?' + qs.toString() : ''}`;
+        return;
+      }
+
+      // 3) Otherwise, allow the normal link to work as-is
+    }, { passive: false });
+  }
+
+    /* (Optional) mark active chip if it exactly matches the category in URL */
     function markFunctionalActive() {
-      const hereCat = (getParam("category") || "").toLowerCase();
+      const hereCat = (getParam("category") || "").toLowerCase().trim();
       if (!hereCat) return;
-      let marked = false;
       qsa('#functionalNav a[data-category]').forEach(a => {
-        const cat = (a.getAttribute('data-category') || "").toLowerCase();
-        if (cat === hereCat) { a.classList.add('active'); marked = true; }
+        const cat = (a.getAttribute('data-category') || "").toLowerCase().trim();
+        if (cat === hereCat) a.classList.add('active');
       });
-      if (!marked && hereCat.includes("women")) qs('#functionalNav a[data-category="women"]')?.classList.add('active');
-      if (!marked && hereCat.includes("men"))   qs('#functionalNav a[data-category="men"]')?.classList.add('active');
     }
 
     /* ---------- Shop logic ---------- */
     const grid = qs("#grid"), resultCount=qs("#resultCount"), pageInfo=qs("#pageInfo");
     const prevBtn=qs("#prevBtn"), nextBtn=qs("#nextBtn"), sortSel=qs("#sortSel");
-    const breadcrumbs=qs("#breadcrumbs"), activeFilters=qs("#activeFilters"), errorBox=qs("#errorBox");
+    const breadcrumbs=qs("#breadcrumbs"), errorBox=qs("#errorBox");
     const qp = new URL(location.href).searchParams;
 
     function getParams() {
@@ -357,54 +411,58 @@
       if (!Number.isFinite(n)) return "Rs. —";
       return "Rs. " + new Intl.NumberFormat("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
     }
+
     function renderBreadcrumbs({ g, c }) {
+      const titleCase = s => String(s||"").replace(/[-_]/g, " ")
+                                          .replace(/\b\w/g, m => m.toUpperCase());
+
+      // hidden normal breadcrumbs in <main> (kept)
       const segs = [];
-      if (g) segs.push(`<span class="opacity-80">${g[0].toUpperCase()+g.slice(1)}</span>`);
+      if (g) segs.push(`<span class="opacity-80">${titleCase(g)}</span>`);
       if (c) c.split(",").forEach(s => {
-        const t = s.replace(/-/g," ");
-        segs.push(`<span class="opacity-60">/</span> <span>${t[0].toUpperCase()+t.slice(1)}</span>`);
+        segs.push(`<span class="opacity-60">/</span> <span>${titleCase(s)}</span>`);
       });
-      breadcrumbs.innerHTML = segs.join(" ");
+      const bc = document.getElementById("breadcrumbs");
+      if (bc) bc.innerHTML = segs.join(" ");
+
+      // HERO big title = last selection
+      const heroTitle = document.getElementById("heroTitle");
+      if (heroTitle) {
+        const last = (c && c.split(",").slice(-1)[0]) || g || "Shop";
+        heroTitle.textContent = titleCase(last);
+      }
     }
-    function chip(text, onClose) {
-      const id = `chip-${Math.random().toString(36).slice(2)}`;
-      queueMicrotask(() => document.getElementById(id)?.addEventListener("click", onClose));
-      return `<span class="inline-flex items-center gap-1 border rounded-full px-3 py-1 text-xs">${text}<button id="${id}" class="ml-1 text-xs opacity-60 hover:opacity-100" aria-label="Remove filter">✕</button></span>`;
-    }
-    function renderActive({ g, c, size }) {
-      const chips = [];
-      if (g) chips.push(chip(g[0].toUpperCase()+g.slice(1), ()=>{ setParamIfChanged("g",""); setParamIfChanged("gender",""); setParamIfChanged("page","1"); load(); }));
-      if (c) c.split(",").forEach(slug => {
-        const label = slug.replace(/-/g," ").replace(/\b\w/g,m=>m.toUpperCase());
-        chips.push(chip(label, ()=> {
-          const left = c.split(",").filter(x=>x!==slug);
-          setParamIfChanged("c", left.join(",")); setParamIfChanged("category",""); setParamIfChanged("page","1"); load();
-        }));
-      });
-      if (size) size.split(",").forEach(s => {
-        chips.push(chip(`Size ${s.toUpperCase()}`, ()=> {
-          const left = size.split(",").filter(x=>x!==s);
-          setParamIfChanged("size", left.join(",")); setParamIfChanged("page","1"); load();
-        }));
-      });
-      activeFilters.innerHTML = chips.join("");
-    }
-    function renderCard(p) {
-      const img = p.imageUrl || "/assets/uploads/placeholder.png";
-return `
-  <div class="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
-    <a href="/pages/productdetail.html?slug=${encodeURIComponent(p.slug)}" class="block">
-      <div class="aspect-[4/5] w-full bg-neutral-100 overflow-hidden">
-        <img src="${img}" alt="${p.name}" class="h-full w-full object-cover group-hover:scale-[1.02] transition" loading="lazy" onerror="this.src='/assets/uploads/placeholder.png'">
-      </div>
-      <div class="p-3">
-        <div class="text-sm font-medium line-clamp-1">${p.name}</div>
-        <!-- removed the category/description line -->
-        <div class="mt-1 font-bold" style="color: var(--beige);">${fmtPrice(p.priceCents)}</div>
-      </div>
-    </a>
-  </div>`;
-    }
+
+    /* No-op to keep older call safe after removing chips row */
+    function renderActive(){}
+
+function renderCard(p, ctx) {
+  const img = p.imageUrl || "/assets/uploads/placeholder.png";
+
+  // Build a link that keeps context from Shop (g, category) if available
+  const ctxQS = (ctx && (ctx.g || ctx.c))
+    ? '&' + new URLSearchParams({
+        ...(ctx.g ? { g: ctx.g } : {}),
+        ...(ctx.c ? { category: ctx.c } : {}),
+      }).toString()
+    : '';
+
+  return `
+    <div class="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+      <a href="/pages/productdetail.html?slug=${encodeURIComponent(p.slug)}${ctxQS}" class="block">
+        <div class="aspect-[4/5] w-full bg-neutral-100 overflow-hidden">
+          <img src="${img}" alt="${p.name}"
+               class="h-full w-full object-cover group-hover:scale-[1.02] transition"
+               loading="lazy"
+               onerror="this.src='/assets/uploads/placeholder.png'">
+        </div>
+        <div class="p-3">
+          <div class="text-sm font-medium line-clamp-1">${p.name}</div>
+          <div class="mt-1 font-bold" style="color: var(--beige);">${fmtPrice(p.priceCents)}</div>
+        </div>
+      </a>
+    </div>`;
+}
     function showError(msg, extra) {
       console.error(msg, extra || "");
       errorBox.textContent = `${msg}\n${extra ? JSON.stringify(extra, null, 2) : ""}`;
@@ -442,7 +500,7 @@ return `
       resultCount.textContent = `${data.total} item${data.total===1?"":"s"} found`;
       const lastPage = Math.max(1, Math.ceil(data.total / data.limit));
       pageInfo.textContent = `Page ${data.page} of ${lastPage}`;
-      grid.innerHTML = data.items.map(renderCard).join("");
+      grid.innerHTML = data.items.map(item => renderCard(item, p)).join("");
       prevBtn.disabled = (data.page <= 1);
       nextBtn.disabled = (data.page >= lastPage);
     }
